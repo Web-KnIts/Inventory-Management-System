@@ -4,7 +4,6 @@ const jwt = require('jsonwebtoken');
 
 const authenticate = asyncHandler(async(req,res,next)=>{
     const token = req.cookies.token  || req.headers['authorization'].split(' ')[1];
-    console.log(token);
     if(!token)
     {
         res.status(400);

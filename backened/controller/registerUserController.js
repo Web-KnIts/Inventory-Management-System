@@ -215,7 +215,7 @@ const updateUser = asyncHandler(async(req,res)=>{
 
 })
 
-// change Password : 
+// change Password : (need to test)
 // 1. get old and new password of user;
 // 2. check user 
 // 3. update user if old pass matches pass in db
@@ -255,14 +255,14 @@ const changePassword = asyncHandler(async(req,res)=>{
 })
 
 
-// Forget Password : 
+// Forget Password : (need to test)
 // 1. get data
 // 2. validate user
 // 3. delete previous token first
 // 4. reset token and store it into database;
 // 5. generate frontend url 
 // 6. sending a link to the mail for reset route;
-const foregetPassword = asyncHandler(async(req,res)=>{
+const forgetPassword = asyncHandler(async(req,res)=>{
     const {email} = req.body;
 
     if(!email){
@@ -285,15 +285,14 @@ const foregetPassword = asyncHandler(async(req,res)=>{
     }
 
     const generateResetToken = crypto.getRandomValues(32).toString('hex')+userDetails._id;
-    const hashResetToken = crypto.createHash('sha256').update(generateResetToken).digest('hex');4
+    const hashResetToken = crypto.createHash('sha256').update(generateResetToken).digest('hex');
 
-    const saveResetToken = await Token.create({
+     await Token.create({
         userId:userDetails._id,
         token:hashResetToken,
         createdAt:Date.now(),
         expiredAt:Date.now() + 30*60*1000
-    })
-    console.log(saveResetToken)
+    }).save();
 
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${generateResetToken}`;
 
@@ -324,5 +323,50 @@ const foregetPassword = asyncHandler(async(req,res)=>{
     }
 })
 
+// Reset Password : (need to test)
+// step 1: gather information from body and params
+// step 2: validate data received
+// step 3: hash Reset token received
+// step 4: find Token db call using hash token
+// step 5: validate token
+// step 6: update user details (password)
+// step 7: send response
+const resetPassword = asyncHandler(async(req,res)=>{
+    const {password} = req.body;
+    const {resetToken} = req.params;
 
-module.exports = {registerUser,loginStatus,loginUser,logout,getUser,updateUser,foregetPassword,changePassword};
+    if(!password)
+    {   
+        res.status(400)
+        throw new Error('Reset Password missing')
+    }
+
+    if(!resetToken)
+    {
+        res.status(404);
+        throw new Error("resetToken not found")
+    }
+
+    const hashToken = crypto.createHash('sha256').update(resetToken).digest("hex");
+    const userToken = await Token.findOne({
+        token:hashToken,
+        expiredAt:{$gt:Date.now()}
+    });
+
+    if(!userToken)
+    {
+        res.status(404);
+        throw new Error('Invalid / Expired Token');
+    }
+
+    const user = await User.findOne({_id:userToken.userId});
+    user.password = password;
+    await user.save();
+
+    res.status(200).json({
+        success:true,
+        message:"Password reset Successful , Please Login"
+    })
+})
+
+module.exports = {registerUser,loginStatus,loginUser,logout,getUser,updateUser,forgetPassword,changePassword,resetPassword};
