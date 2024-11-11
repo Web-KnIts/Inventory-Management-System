@@ -4,7 +4,8 @@ const cookieParser = require('cookie-parser')
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const connectToDatabase = require('./Database/config');
-const userRoute = require('./routes/userRoute.js')
+const userRoute = require('./routes/userRoute.js');
+const contactRoute = require('./routes/contactRoute.js');
 const errorHandler = require('./middleware/errorMiddleware');
 
 const app = express();
@@ -18,8 +19,8 @@ app.use(cors({
     origin:'*'
 }))
 
+app.use('/contact-us',contactRoute)
 app.use("/api/users", userRoute);
-
 app.get('/',(req,res)=>{
     res.send('Hello')
 })
