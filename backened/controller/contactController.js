@@ -1,6 +1,5 @@
 require('dotenv').config();
 const asyncHandler = require('express-async-handler');
-const User = require('../models/userSchema');
 const sendEmail = require('../utils/sendEmail');
 
 // Contact Us - email : (need to test)
